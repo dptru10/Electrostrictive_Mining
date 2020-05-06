@@ -90,8 +90,6 @@ for i in clusters:
     else: 
     	model.fit(X_fit)
     centroids = model.cluster_centers_
-    #X_reduced = data_transform#PCA(n_components=2).fit_transform(data_transform)
-    #plt.scatter(data_transform[:,0], data_transform[:,1], c=model.labels_,cmap=plt.cm.jet)
     plt.scatter(X_fit['dielectric_tensor'],X_fit['elastic_compliance'], c=model.labels_,cmap=plt.cm.jet)
     plt.xlabel("Normalized Dielectric Tensor Average Eigenvalues")
     plt.ylabel("Normalized Elastic Compliance Average Eignevalues")
@@ -104,19 +102,22 @@ for i in clusters:
     summed_square_distance.append(model.inertia_)
     if args.normalize is True: 
     	calinski_score.append(calinski_harabasz_score(data_transform,model.labels_))
-    	#calinski_score = np.array(calinski_score)
-    	#calinski_score = calinski_score.reshape(-1,1)
-    	#calinski_transform=mms.fit_transform(calinski_score)
     else:
     	calinski_score.append(calinski_harabasz_score(X_fit,model.labels_))
     X_fit['labels'] = model.labels_
     X_fit.to_csv('data_%i_clusters.csv' %i)
 plt.figure() 
 plt.plot(clusters, summed_square_distance, 'bx-')
-#plt.plot(clusters, calinski_score,'rx-',label='calinski_harabasz')
 plt.xlabel('Number of Clusters')
 plt.ylabel('Sum_of_squared_distances')
-plt.yscale('log')
 plt.title('Elbow Method For Optimal k')
 plt.tight_layout() 
 plt.savefig('elbow_method_centro_dataset.png')
+
+plt.figure() 
+plt.plot(clusters, calinski_score,'rx-',label='calinski_harabasz')
+plt.xlabel('Number of Clusters')
+plt.ylabel('Sum_of_squared_distances')
+plt.title('Silhouette Method For Optimal k')
+plt.tight_layout() 
+plt.savefig('silhouette_method_centro_dataset.png')
