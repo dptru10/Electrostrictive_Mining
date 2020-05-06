@@ -14,12 +14,18 @@ parser.add_argument("--normalize",action="store_true")
 parser.add_argument("--drop_anomaly",action="store_true")
 args = parser.parse_args()
 
-centro_elastic_compliance=np.load('/Users/dennistrujillo/Dropbox/mp_share_dt_ag/elasticity_compliance/centro_elasticity.npy',allow_pickle=True)
-centro_dielectric_tensor=np.load('/Users/dennistrujillo/Dropbox/mp_share_dt_ag/dielectric_total/centro_diel.npy',allow_pickle=True)
-labels=np.load('/Users/dennistrujillo/Dropbox/mp_share_dt_ag/structs/data/centro_names.npy',allow_pickle=True)
-mp_ids=np.load('/Users/dennistrujillo/Dropbox/mp_share_dt_ag/structs/data/centrosymmetric_task_ids.npy',allow_pickle=True)
+centro_elastic_compliance=np.load('centro_elasticity.npy',allow_pickle=True)
+centro_dielectric_tensor=np.load('centro_diel.npy',allow_pickle=True)
+labels=np.load('centro_names.npy',allow_pickle=True)
+mp_ids=np.load('centrosymmetric_task_ids.npy',allow_pickle=True)
 
-outliers = []#'Cs2Pd3S4','LiFeF4','FeCl2']
+#list the chemical formula for outliers chosen by hand here.
+#right now I have the array empty, but it can be populated with strings.
+
+outliers = [] 
+
+
+
 ec_list=[]
 for item in centro_elastic_compliance:
 	obj=dict(item)
