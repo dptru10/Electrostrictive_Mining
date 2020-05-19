@@ -116,7 +116,7 @@ plt.xscale('log')
 plt.yscale('log')
 plt.tight_layout()
 plt.savefig('%s_vs_diel.png' %name)
-plt.show()
+#plt.show()
 
 fig=plt.figure()
 ax=fig.add_subplot(111)
@@ -147,7 +147,7 @@ plt.xlabel("dielect. tensor average eigs.")
 plt.yscale('log')
 plt.tight_layout()
 plt.savefig('%s_vs_diel_high_ratio.png' %name)
-plt.show()
+#plt.show()
 
 #plot figures
 plt.figure()
@@ -183,8 +183,8 @@ if args.plot_eigs is True:
 	for pts in zip(select['dielectric tensor'],select['elastic compliance']):
 		ax.annotate(str(select['labels'].iloc[i]),pts)
 		i+=1
-	plt.scatter(select['dielectric tensor'],select['elastic compliance'],marker='*',color='red')
 	plt.hist2d(x=data['dielectric tensor'],y=data['elastic compliance'],bins=100,norm=colors.LogNorm())   
+	plt.scatter(select['dielectric tensor'],select['elastic compliance'],marker='*',color='red')
 	plt.ylabel("Elastic Compliance Average Eignevalues [$10^{-12}$ $Pa^{-1}$]")
 	plt.axis([4,40,5,10])
 if args.plot_kv is True:
@@ -193,14 +193,15 @@ if args.plot_kv is True:
 	for pts in zip(select['dielectric tensor'],select['Bulk modulus']):
 		ax.annotate(str(select['labels'].iloc[i]),pts)
 		i+=1
-	plt.scatter(select['dielectric tensor'],select['Bulk modulus'],marker='*',color='red')
 	plt.hist2d(x=data['dielectric tensor'],y=data['Bulk modulus'],bins=100,norm=colors.LogNorm())   
+	plt.scatter(select['dielectric tensor'],select['Bulk modulus'],marker='*',color='red')
 	plt.ylabel("Bulk modulus Voight [$10^{-12}$ $Pa^{-1}$]")
-	plt.axis([np.min(select['dielectric tensor']),np.max(select['dielectric tensor']),np.min(select['Bulk modulus']),np.max(select['Bulk modulus'])])
+	plt.axis([4,22,0.5,0.8])
+	#plt.axis([np.min(select['dielectric tensor'])-0.1,np.max(select['dielectric tensor'])+5,0.1,np.max(select['Bulk modulus'])+1])
 plt.colorbar() 
 
-plt.xscale('log')
-plt.yscale('log')
+#plt.xscale('log')
+#plt.yscale('log')
 plt.xlabel("Dielectric Tensor Average Eigenvalues")
 #plt.tight_layout()
 plt.savefig('%s_vs_epsilon_dist_reduced.png' %name)
