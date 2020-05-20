@@ -14,28 +14,26 @@ parser.add_argument("--normalize",action="store_true")
 parser.add_argument("--drop_anomaly",action="store_true")
 args = parser.parse_args()
 
-centro_elastic_compliance=np.load('centro_elasticity.npy',allow_pickle=True)
-centro_dielectric_tensor=np.load('centro_diel.npy',allow_pickle=True)
-labels=np.load('centro_names.npy',allow_pickle=True)
-mp_ids=np.load('centrosymmetric_task_ids.npy',allow_pickle=True)
+centro_elastic_compliance=np.load('/Users/dennistrujillo/Dropbox/mp_share_dt_ag/elasticity_compliance/centro_elasticity.npy',allow_pickle=True)
+centro_dielectric_tensor=np.load('/Users/dennistrujillo/Dropbox/mp_share_dt_ag/dielectric_total/centro_diel.npy',allow_pickle=True)
+labels=np.load('/Users/dennistrujillo/Dropbox/mp_share_dt_ag/structs/data/centro_names.npy',allow_pickle=True)
+mp_ids=np.load('/Users/dennistrujillo/Dropbox/mp_share_dt_ag/structs/data/centrosymmetric_task_ids.npy',allow_pickle=True)
 
-#list the chemical formula for outliers chosen by hand here.
-#right now I have the array empty, but it can be populated with strings.
-
-outliers = [] 
-
-
-
+outliers = []#'Cs2Pd3S4','LiFeF4','FeCl2']
 ec_list=[]
+Kv     =[]
 for item in centro_elastic_compliance:
 	obj=dict(item)
 	if obj['elasticity.compliance_tensor'] != None:
-		obj=obj['elasticity.compliance_tensor']
-		w, v = eig(obj)
-		w    = np.average(np.real(w))
+                obj=obj['elasticity.compliance_tensor']
+                w, v = eig(obj)
+                w    = np.average(np.real(w))
+                k    = ((obj[0][0] + obj[1][1] + obj[2][2]) + 2 * (obj[0][1] + obj[1][2] + obj[2][0]))/9
 	else: 
-		w=np.nan
+		w    = np.nan
+		k    = np.nan 
 	ec_list.append(w)
+	Kv.append(k)
 
 dt_list=[]
 for item in centro_dielectric_tensor:
@@ -45,18 +43,21 @@ for item in centro_dielectric_tensor:
 		w, v = eig(obj)
 		w    = np.average(np.real(w))
 	else: 
-		w=np.nan
+		w    = np.nan
 	dt_list.append(w)
 
 s_vs_ep=[]
+kv_vs_ep=[]
 for i in range(len(dt_list)):
-    s_vs_ep.append(ec_list[i]/dt_list[i]) 
+	s_vs_ep.append((ec_list[i]/dt_list[i])/8.85) 
+	kv_vs_ep.append((Kv[i]/dt_list[i])/8.85)
 
 X  = pd.DataFrame() 
 X['elastic_compliance'] = ec_list 
 X['dielectric_tensor']  = dt_list
 X['mp_id']              = mp_ids
 X['pretty_formula']     = labels
+X['bulk modulus']       = Kv
 X = X.loc[X['elastic_compliance'] > 0]
 X = X.loc[X['dielectric_tensor'] > 0]
 
@@ -64,7 +65,7 @@ for label in outliers:
 	X = X.loc[X['pretty_formula'] != label]
 X=X.dropna() 
 
-features = ['elastic_compliance','dielectric_tensor']
+features = ['bulk modulus','dielectric_tensor']
 X_fit = X[features]
 
 if args.normalize is True: 
@@ -90,9 +91,11 @@ for i in clusters:
     else: 
     	model.fit(X_fit)
     centroids = model.cluster_centers_
-    plt.scatter(X_fit['dielectric_tensor'],X_fit['elastic_compliance'], c=model.labels_,cmap=plt.cm.jet)
+    #X_reduced = data_transform#PCA(n_components=2).fit_transform(data_transform)
+    #plt.scatter(data_transform[:,0], data_transform[:,1], c=model.labels_,cmap=plt.cm.jet)
+    plt.scatter(X_fit['dielectric_tensor'],X_fit['bulk modulus'], c=model.labels_,cmap=plt.cm.jet)
     plt.xlabel("Normalized Dielectric Tensor Average Eigenvalues")
-    plt.ylabel("Normalized Elastic Compliance Average Eignevalues")
+    plt.ylabel("Bulk modulus Voight ave. ($k_{v}$) [$10^{-12}$ $pa^{-1}$]")
     plt.xscale('log')
     plt.yscale('log')
     plt.tight_layout() 
@@ -102,22 +105,30 @@ for i in clusters:
     summed_square_distance.append(model.inertia_)
     if args.normalize is True: 
     	calinski_score.append(calinski_harabasz_score(data_transform,model.labels_))
+    	#calinski_score = np.array(calinski_score)
+    	#calinski_score = calinski_score.reshape(-1,1)
+    	#calinski_transform=mms.fit_transform(calinski_score)
     else:
     	calinski_score.append(calinski_harabasz_score(X_fit,model.labels_))
     X_fit['labels'] = model.labels_
     X_fit.to_csv('data_%i_clusters.csv' %i)
 plt.figure() 
 plt.plot(clusters, summed_square_distance, 'bx-')
+#plt.plot(clusters, calinski_score,'rx-',label='calinski_harabasz')
 plt.xlabel('Number of Clusters')
 plt.ylabel('Sum_of_squared_distances')
+#plt.yscale('log')
 plt.title('Elbow Method For Optimal k')
 plt.tight_layout() 
 plt.savefig('elbow_method_centro_dataset.png')
 
 plt.figure() 
+#plt.plot(clusters, summed_square_distance, 'bx-')
 plt.plot(clusters, calinski_score,'rx-',label='calinski_harabasz')
 plt.xlabel('Number of Clusters')
 plt.ylabel('Sum_of_squared_distances')
-plt.title('Silhouette Method For Optimal k')
+#plt.yscale('log')
+plt.title('Elbow Method For Optimal k')
 plt.tight_layout() 
 plt.savefig('silhouette_method_centro_dataset.png')
+
