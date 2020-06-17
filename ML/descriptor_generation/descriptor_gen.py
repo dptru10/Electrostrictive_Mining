@@ -234,47 +234,44 @@ if args.importance is True:
         if args.compliance is True: 
             bootstrap        = False
             max_depth        = 20
-            max_features     = auto
+            max_features     = 'auto'
             min_samples_leaf =  2
             min_samples_split= 2 
             n_estimators     = 2000
         if args.dielectric is True: 
             bootstrap        = False
             max_depth        = 30
-            max_features     = auto
+            max_features     = 'auto'
             min_samples_leaf =  2
             min_samples_split= 10 
             n_estimators     = 1200
-	forest = ExtraTreesRegressor(n_estimators=n_estimators,max_depth=max_depth,max_features=max_features,min_samples_leaf=min_samples_leaf,min_samples_split=min_samples_split,random_state=1)
-	forest.fit(X,Y)
-	importances = forest.feature_importances_
-	std = np.std([tree.feature_importances_ for tree in forest.estimators_],
-	             axis=0)
-	indices = np.argsort(importances)[::-1]
-	
-	
-	print(len(indices))
-	print(len(labels))
-	print(len(importances))
-	print("Feature ranking:")
-	
-	ranked_features=[]
-	for f in range(X.shape[1]):
-		print("%d. %s (%f)" % (f + 1, labels[indices[f]], importances[indices[f]]))
-
-	plt.figure()
-	plt.title("Feature importances")
-	plt.bar(range(len(ranked_features)), ranked_features,
-	       color="r", align="center")
-	plt.xticks(range(len(ranked_features)),ranked_features,rotation=45,fontsize=10,fontweight='bold')
-	plt.xlim([-1, len(ranked_features)])
-	plt.tight_layout()
-	plt.savefig('random_forest_feature_importance.png')
-	
-	feature_rank = pd.DataFrame()
-	feature_rank['labels'] = pd.Series(labels[indices])
-	feature_rank['importances'] = pd.Series(importances[indices]) 
-	feature_rank.to_csv('feature_rank.csv')
+        forest = ExtraTreesRegressor(n_estimators=n_estimators,max_depth=max_depth,max_features=max_features,min_samples_leaf=min_samples_leaf,min_samples_split=min_samples_split,random_state=1)
+        forest.fit(X,Y)
+        importances = forest.feature_importances_
+        std = np.std([tree.feature_importances_ for tree in forest.estimators_],axis=0)
+        indices = np.argsort(importances)[::-1]
+        print(len(indices))
+        print(len(labels))
+        print(len(importances))
+        print("Feature ranking:")
+        
+        ranked_features=[]
+        for f in range(X.shape[1]):
+        	print("%d. %s (%f)" % (f + 1, labels[indices[f]], importances[indices[f]]))
+        
+        plt.figure()
+        plt.title("Feature importances")
+        plt.bar(range(len(ranked_features)), ranked_features,
+               color="r", align="center")
+        plt.xticks(range(len(ranked_features)),ranked_features,rotation=45,fontsize=10,fontweight='bold')
+        plt.xlim([-1, len(ranked_features)])
+        plt.tight_layout()
+        plt.savefig('random_forest_feature_importance.png')
+        
+        feature_rank = pd.DataFrame()
+        feature_rank['labels'] = pd.Series(labels[indices])
+        feature_rank['importances'] = pd.Series(importances[indices]) 
+        feature_rank.to_csv('feature_rank.csv')
 
 if args.outlier_removal is True: 
         if args.compliance is True: 
@@ -283,15 +280,15 @@ if args.outlier_removal is True:
         if args.dielectric is True: 
             bootstrap        = False
             n_estimators     = 1200
-	isolated_forest=IsolationForest(n_estimators=n_estimators,max_samples='auto',contamination='auto',max_features=1.0, bootstrap=bootstrap, n_jobs=-1, random_state=1, verbose=0)
-	isolated_forest.fit(X)
-	predicted=isolated_forest.predict(X) 
-	X['anomaly']  = predicted 
-	X['endpoint'] = Y
-	print(X['anomaly'].value_counts())
-	X = X.loc[X['anomaly']==1]
-	Y = X['endpoint']
-	X = X.drop(columns='endpoint')
+        isolated_forest=IsolationForest(n_estimators=n_estimators,max_samples='auto',contamination='auto',max_features=1.0, bootstrap=bootstrap, n_jobs=-1, random_state=1, verbose=0)
+        isolated_forest.fit(X)
+        predicted=isolated_forest.predict(X) 
+        X['anomaly']  = predicted 
+        X['endpoint'] = Y
+        print(X['anomaly'].value_counts())
+        X = X.loc[X['anomaly']==1]
+        Y = X['endpoint']
+        X = X.drop(columns='endpoint')
 
 if args.ml is True: 
 	# make training and test set
@@ -331,42 +328,42 @@ if args.ml is True:
 		dump(forest,'rf_s_vs_e.pkl')
         
 	if args.dielectric is True: 
-		if args.outlier_removal is True:
-			f=open('hyperpameters_outlier_removal_dielectric.txt',mode='w')
-                if args.functionalize is True: 
-			f=open('hyperpameters_functionalize_dielectric.txt',mode='w')
-			if args.outlier_removal is True:
-				f=open('hyperpameters_outlier_removal_func_dielectric.txt',mode='w')
-                else: 
-			f=open('hyperpameters_dielectric.txt',mode='w')
-		f.write("Best parameters set found on development set:")
-		f.write('\n\n')
-		f.write(str(forest.best_params_))
-		f.write('\n\n')
-		f.write('Score:')
-		f.write(str(-forest.best_score_))
-		f.write('\n\n')
-		f.write('Train:\nR2:%.3f \nMSE:%.3f\nRMSE:%.3f\nMAE:%.3f\nTest:\nR2:%.3f\nMSE:%.3f\nRMSE:%.3f\nMAE:%.3f' %(r2_score_train,mse_score_train,rmse_score_train,mae_score_train,r2_score_test,mse_score_test,rmse_score_test,mae_score_test)) 
-		f.close() 
+            if args.outlier_removal is True:
+                f=open('hyperpameters_outlier_removal_dielectric.txt',mode='w')
+            if args.functionalize is True: 
+                f=open('hyperpameters_functionalize_dielectric.txt',mode='w')
+                if args.outlier_removal is True:
+                	f=open('hyperpameters_outlier_removal_func_dielectric.txt',mode='w')
+            else: 
+            	f=open('hyperpameters_dielectric.txt',mode='w')
+            f.write("Best parameters set found on development set:")
+            f.write('\n\n')
+            f.write(str(forest.best_params_))
+            f.write('\n\n')
+            f.write('Score:')
+            f.write(str(-forest.best_score_))
+            f.write('\n\n')
+            f.write('Train:\nR2:%.3f \nMSE:%.3f\nRMSE:%.3f\nMAE:%.3f\nTest:\nR2:%.3f\nMSE:%.3f\nRMSE:%.3f\nMAE:%.3f' %(r2_score_train,mse_score_train,rmse_score_train,mae_score_train,r2_score_test,mse_score_test,rmse_score_test,mae_score_test)) 
+            f.close() 
     
 	if args.compliance is True: 
-		if args.outlier_removal is True: 
-			f=open('hyperpameters_outlier_removal_compliance.txt',mode='w')
-                if args.functionalize is True: 
-			f=open('hyperpameters_functionalize_compliance.txt',mode='w')
-			if args.outlier_removal is True:
-				f=open('hyperpameters_outlier_removal_func_compliance.txt',mode='w')
-		else: 
-			f=open('hyperpameters_compliance.txt',mode='w')
-		f.write("Best parameters set found on development set:")
-		f.write('\n\n')
-		f.write(str(forest.best_params_))
-		f.write('\n\n')
-		f.write('Score:')
-		f.write(str(-forest.best_score_))
-		f.write('\n\n')
-		f.write('Train:\nR2:%.3f \nMSE:%.3f\nRMSE:%.3f\nMAE:%.3f\nTest:\nR2:%.3f\nMSE:%.3f\nRMSE:%.3f\nMAE:%.3f' %(r2_score_train,mse_score_train,rmse_score_train,mae_score_train,r2_score_test,mse_score_test,rmse_score_test,mae_score_test)) 
-		f.close()
+            if args.outlier_removal is True: 
+            	f=open('hyperpameters_outlier_removal_compliance.txt',mode='w')
+            if args.functionalize is True: 
+            	f=open('hyperpameters_functionalize_compliance.txt',mode='w')
+            	if args.outlier_removal is True:
+            		f=open('hyperpameters_outlier_removal_func_compliance.txt',mode='w')
+            else: 
+            	f=open('hyperpameters_compliance.txt',mode='w')
+            f.write("Best parameters set found on development set:")
+            f.write('\n\n')
+            f.write(str(forest.best_params_))
+            f.write('\n\n')
+            f.write('Score:')
+            f.write(str(-forest.best_score_))
+            f.write('\n\n')
+            f.write('Train:\nR2:%.3f \nMSE:%.3f\nRMSE:%.3f\nMAE:%.3f\nTest:\nR2:%.3f\nMSE:%.3f\nRMSE:%.3f\nMAE:%.3f' %(r2_score_train,mse_score_train,rmse_score_train,mae_score_train,r2_score_test,mse_score_test,rmse_score_test,mae_score_test)) 
+            f.close()
  
 	#plot figures
 	plt.figure()
@@ -376,29 +373,29 @@ if args.ml is True:
 	plt.axis([np.min(y_train),np.max(y_train),np.min(y_train),np.max(y_train)])
 	plt.colorbar() 
 	if args.dielectric is True: 
-		plt.xlabel('Reported $\epsilon$')
-		plt.ylabel('Predicted $\epsilon$')
-		plt.tight_layout()
-                if args.functionalize is True: 
-			plt.savefig('forest_histogram_dielectric_functionalize_train.png')
-			if args.outlier_removal is True:
-				plt.savefig('forest_histogram_dielectric_outlier_removal_func_train.png')
-		if args.outlier_removal is True: 
-			plt.savefig('forest_histogram_dielectric_outlier_removal_train.png')
-		else: 
-			plt.savefig('forest_histogram_dielectric_train.png')
+            plt.xlabel('Reported $\epsilon$')
+            plt.ylabel('Predicted $\epsilon$')
+            plt.tight_layout()
+            if args.functionalize is True: 
+            	plt.savefig('forest_histogram_dielectric_functionalize_train.png')
+            	if args.outlier_removal is True:
+            		plt.savefig('forest_histogram_dielectric_outlier_removal_func_train.png')
+            if args.outlier_removal is True: 
+            	plt.savefig('forest_histogram_dielectric_outlier_removal_train.png')
+            else: 
+                plt.savefig('forest_histogram_dielectric_train.png')
 	if args.compliance is True: 
-		plt.xlabel('Reported $K_{v}$')
-		plt.ylabel('Predicted $K_{v}$')
-		plt.tight_layout()
-                if args.functionalize is True: 
-			plt.savefig('forest_histogram_compliance_functionalize_train.png')
-			if args.outlier_removal is True:
-				plt.savefig('forest_histogram_compliance_outlier_removal_func_train.png')
-		if args.outlier_removal is True: 
-			plt.savefig('forest_histogram_compliance_outlier_removal_train.png')
-		else: 
-			plt.savefig('forest_histogram_compliance_train.png')
+            plt.xlabel('Reported $K_{v}$')
+            plt.ylabel('Predicted $K_{v}$')
+            plt.tight_layout()
+            if args.functionalize is True: 
+            	plt.savefig('forest_histogram_compliance_functionalize_train.png')
+            	if args.outlier_removal is True:
+            		plt.savefig('forest_histogram_compliance_outlier_removal_func_train.png')
+            if args.outlier_removal is True: 
+                plt.savefig('forest_histogram_compliance_outlier_removal_train.png')
+            else: 
+                plt.savefig('forest_histogram_compliance_train.png')
 	plt.figure()
 	plt.title('Histogram forest Test')
 	plt.hist2d(x=y_test,y=model_test,bins=100,norm=colors.LogNorm())
@@ -406,26 +403,26 @@ if args.ml is True:
 	plt.axis([np.min(y_test),np.max(y_test),np.min(y_test),np.max(y_test)])
 	plt.colorbar() 
 	if args.dielectric is True: 
-		plt.xlabel('Reported $\epsilon$')
-		plt.ylabel('Predicted $\epsilon$')
-		plt.tight_layout()
-                if args.functionalize is True: 
-			plt.savefig('forest_histogram_dielectric_functionalize_test.png')
-			if args.outlier_removal is True:
-				plt.savefig('forest_histogram_dielectric_outlier_removal_func_test.png')
-		if args.outlier_removal is True: 
-			plt.savefig('forest_histogram_dielectric_outlier_removal_test.png')
-		else: 
-			plt.savefig('forest_histogram_dielectric_test.png')
+            plt.xlabel('Reported $\epsilon$')
+            plt.ylabel('Predicted $\epsilon$')
+            plt.tight_layout()
+            if args.functionalize is True: 
+                plt.savefig('forest_histogram_dielectric_functionalize_test.png')
+                if args.outlier_removal is True:
+                    plt.savefig('forest_histogram_dielectric_outlier_removal_func_test.png')
+            if args.outlier_removal is True: 
+                plt.savefig('forest_histogram_dielectric_outlier_removal_test.png')
+            else: 
+                plt.savefig('forest_histogram_dielectric_test.png')
 	if args.compliance is True: 
-		plt.xlabel('Reported $K_{v}$')
-		plt.ylabel('Predicted $K_{v}$')
-		plt.tight_layout()
-                if args.functionalize is True: 
-			plt.savefig('forest_histogram_compliance_functionalize_test.png')
-			if args.outlier_removal is True:
-				plt.savefig('forest_histogram_compliance_outlier_removal_func_test.png')
-		if args.outlier_removal is True: 
-			plt.savefig('forest_histogram_compliance_outlier_removal_test.png')
-		else: 
-			plt.savefig('forest_histogram_compliance_test.png')
+            plt.xlabel('Reported $K_{v}$')
+            plt.ylabel('Predicted $K_{v}$')
+            plt.tight_layout()
+            if args.functionalize is True: 
+                plt.savefig('forest_histogram_compliance_functionalize_test.png')
+                if args.outlier_removal is True:
+                    plt.savefig('forest_histogram_compliance_outlier_removal_func_test.png')
+            if args.outlier_removal is True: 
+            	plt.savefig('forest_histogram_compliance_outlier_removal_test.png')
+            else: 
+                plt.savefig('forest_histogram_compliance_test.png')
