@@ -2,7 +2,7 @@ from pymatgen.ext.matproj import MPRester
 from pymatgen.io.vasp.sets import MPRelaxSet, VaspInputSet
 import pandas as pd
 
-data = pd.read_csv('not_so_good.csv')
+data = pd.read_csv('new_materials.csv')
 
 mpr = MPRester() 
 
