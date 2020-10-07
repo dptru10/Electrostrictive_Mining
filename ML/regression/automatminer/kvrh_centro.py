@@ -1,0 +1,102 @@
+import matplotlib 
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from matplotlib import colors
+import numpy as np 
+import pandas as pd 
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
+from sklearn.dummy import DummyRegressor
+from automatminer import MatPipe
+
+centro_structs  = np.load('/home/dennis/Dropbox/mp_share_dt_ag/structs/centrosymmetric_insulators_all_insulating.npy',allow_pickle=True)
+centro_elastic  = np.load('/home/dennis/Dropbox/mp_share_dt_ag/structs/centro_elastic_tensor_all_insulating.npy',allow_pickle=True)
+
+K_VRH=[]
+for elastic in centro_elastic: 
+    if elastic['elasticity'] != None: 
+        K_VRH.append(np.log10(elastic['elasticity']['K_VRH']))
+    else: 
+        K_VRH.append(np.nan)
+
+df = pd.DataFrame(columns=['structure','K_VRH'])
+df['structure'] = centro_structs
+df['K_VRH']      = K_VRH
+
+df=df.dropna()
+df.to_csv('centro_elastic.csv')
+print(df.describe())
+
+train_df, test_df = train_test_split(df, test_size=0.1, shuffle=True, random_state=1)
+target = "K_VRH"
+prediction_df = test_df.drop(columns=[target])
+
+pipe = MatPipe.from_preset("express")
+pipe.fit(train_df, target)
+
+prediction_df = pipe.predict(prediction_df)
+
+# fit the dummy
+dr = DummyRegressor()
+dr.fit(train_df["structure"], train_df[target])
+dummy_test = dr.predict(test_df["structure"])
+
+# Score dummy and MatPipe
+true = test_df[target]
+matpipe_test = prediction_df[target + " predicted"]
+
+mae_matpipe = mean_absolute_error(true, matpipe_test)
+mse_matpipe = mean_squared_error(true,matpipe_test)
+r2_matpipe =r2_score(true,matpipe_test)
+
+mae_dummy = mean_absolute_error(true, dummy_test)
+mse_dummy = mean_squared_error(true,dummy_test)
+r2_dummy  = r2_score(true,dummy_test)
+
+print("Dummy MAE: {} eV".format(mae_dummy))
+print("Dummy MSE: {} eV".format(mse_dummy))
+print("Dummy R2: {} eV".format(r2_dummy))
+print("MatPipe MAE: {} eV".format(mae_matpipe))
+print("MatPipe MSE: {} eV".format(mse_matpipe))
+print("MatPipe R2: {} eV".format(r2_matpipe))
+
+
+plt.figure()
+plt.title('Model Test')
+plt.hist2d(x=true,y=dummy_test,bins=100,norm=colors.LogNorm())
+#plt.gca().set_aspect('equal', adjustable='box')
+plt.axis([np.min(true),np.max(dummy_test),np.min(true),np.max(dummy_test)])
+plt.colorbar() 
+plt.xlabel('Reported $K_{v}$')
+plt.ylabel('Predicted $K_{v}$')
+plt.savefig('dummy_kvrh.png')
+
+
+plt.figure()
+plt.title('Model Test')
+plt.hist2d(x=true,y=matpipe_test,bins=100,norm=colors.LogNorm())
+#plt.gca().set_aspect('equal', adjustable='box')
+plt.axis([np.min(true),np.max(matpipe_test),np.min(true),np.max(matpipe_test)])
+plt.colorbar() 
+plt.xlabel('Reported $K_{v}$')
+plt.ylabel('Predicted $K_{v}$')
+plt.savefig('automatminer_kvrh.png')
+
+
+import pprint
+
+# Get a summary and save a copy to json
+summary = pipe.summarize(filename="MatPipe_predict_centro_KVRH.json")
+
+pprint.pprint(summary)
+
+# Access some attributes of MatPipe directly, instead of via a text digest
+
+out_info = open('model_info.txt','rw+')
+out_info.write(pipe.learner.best_pipeline)
+
+out_info.write(pipe.autofeaturizer.featurizers["composition"])
+out_info.close()
+
+filename = "MatPipe_test_centro_KVRH.p"
+pipe.save(filename)
