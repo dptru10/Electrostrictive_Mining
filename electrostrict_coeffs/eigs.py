@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd 
 import argparse
 
+data = pd.read_csv('Promising19_compounds_epsilion_components_Mh.csv')
 
 eig_list=[]
 for i in range(len(data)): 
@@ -11,4 +12,7 @@ for i in range(len(data)):
 	eigs,vecs = np.linalg.eig(matrix)
 	mean = np.mean(eigs)
 	eig_list.append(mean)
-
+data_out = pd.DataFrame(columns=['compound','ave_epsilon_eig']) 
+data_out['compound']        = data['S.N']
+data_out['ave_epsilon_eig'] = eig_list
+data_out.to_csv('Promising19_compounds_epsilion_eigs.csv') 
